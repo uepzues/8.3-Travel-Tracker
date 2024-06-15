@@ -2,17 +2,14 @@ import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
 import dotenv from "dotenv";
-import path from "path"; // NEW CODE
-import fs from "fs"; // NEW CODE
-import { fileURLToPath } from "url"; //new code
+import path from "path";
 
-const __filename = fileURLToPath(import.meta.url); //new code
-const __dirname = path.dirname(__filename); //new code
+const __dirname = path.resolve();
 
 dotenv.config();
 
 const app = express();
-const port = 4000;
+const port = 3000;
 
 const devConfig = {
   user: "postgres",
@@ -36,7 +33,6 @@ db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
-app.set("view engine", "ejs"); // NEW CODE
 
 //check if country has been visited
 const checkVisited = async () => {
@@ -51,39 +47,6 @@ const checkVisited = async () => {
   return countries;
 };
 
-// NEW FUNCTION CODE: to create the HTML output file using EJS and fs.
-const buildHTMLOutput = async (countries, total, error) => {
-  const filePath = path.join(__dirname, "views", "index.ejs");
-
-  try {
-    const htmlContent = await new Promise((resolve, reject) => {
-      // Render the view template to HTML content
-      app.render(
-        filePath,
-        { countries: countries, total: total, error: error },
-        (err, html) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(html);
-          }
-        }
-      );
-    });
-
-    // Output file path
-    const outputPath = path.join(__dirname, "output", "index.html");
-
-    // Ensure the output directory exists
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-
-    // Write the rendered HTML content to the file
-    fs.writeFileSync(outputPath, htmlContent, "utf8");
-  } catch (err) {
-    console.error("Error creating HTML output file:", err);
-  }
-};
-
 // GET home page
 app.get("/", async (req, res) => {
   checkVisited().then((countries) => {
@@ -91,9 +54,6 @@ app.get("/", async (req, res) => {
 
     // render the index.ejs template with the countries array and total number of countries
     res.render("index.ejs", { countries: countries, total: countries.length });
-
-    // Build HTML output file // NEW CODE
-    buildHTMLOutput(countries, countries.length);
   });
 });
 
@@ -134,27 +94,18 @@ app.post("/add", async (req, res) => {
         countries: countries,
         total: countries.length,
       });
-
-      // Build HTML output file // NEW CODE
-      buildHTMLOutput(countries, countries.length);
     } else if (!countryExists) {
       res.render("index.ejs", {
         countries: countries,
         total: countries.length,
         error: "Country does not exist",
       });
-
-      // Build HTML output file // NEW CODE
-      buildHTMLOutput(countries, countries.length, "Country does not exist");
     } else {
       res.render("index.ejs", {
         countries: countries,
         total: countries.length,
         error: "Country already added",
       });
-
-      // Build HTML output file // NEW CODE
-      buildHTMLOutput(countries, countries.length, "Country already added");
     }
   } catch (err) {
     console.log("from catch", err);
