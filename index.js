@@ -24,7 +24,7 @@ const dbConfig = {
   port: process.env.DB_PORT,
 };
 
-const db = new pg.Client(devConfig);
+const db = new pg.Client(dbConfig);
 
 db.connect();
 
