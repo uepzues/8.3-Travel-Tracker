@@ -72,7 +72,7 @@ const buildHTMLOutput = async (countries, total, error) => {
     });
 
     // Output file path
-    const outputPath = path.join(__dirname, "output", "index.html");
+    const outputPath = path.join(__dirname, "public", "index.html");
 
     // Ensure the output directory exists
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
